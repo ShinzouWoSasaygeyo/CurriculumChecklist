@@ -19,8 +19,8 @@ import java.io.*;
  */
 
 public class CurriculumRecord {
-    private ArrayList<Course> templateRecord; //Possible use..? Remove later if not
-    private ArrayList<Course> personalRecord;
+   private ArrayList<Course> templateRecord; //Possible use..? Remove later if not
+    private static ArrayList<Course> personalRecord;
     private ArrayList<Course> compiledRecord;
 
     public CurriculumRecord(InputStream templateRecord, InputStream personalRecord) throws IOException, ClassNotFoundException{
@@ -54,8 +54,12 @@ public class CurriculumRecord {
         templateRecord.close();
     }
 
-    public ArrayList<Course> getCourseList() {
-        return compiledRecord;
+    public void setFilter(ArrayList<Course> courses){
+        personalRecord = courses;
+    }
+
+    public static ArrayList<Course> getCourseList() {
+        return personalRecord;
     }
 
     //Saving file only outputs files.
@@ -97,23 +101,66 @@ public class CurriculumRecord {
         }
         if (!matchFound) personalRecord.add(new Course(courseData));
     }
+    public void deleteCourse(String courseCode) {
+        for (Course outputCourse : personalRecord) {
+            if (outputCourse.getCode().equals(courseCode)) {
+                personalRecord.remove(outputCourse);
+                break;
+            }
+        }
 
+    }
     //INCOMPLETE
-    public ArrayList<Course> FilterByYearAndTerm(int year, int term){
-        return compiledRecord;
+    public ArrayList<Course> FilterByYearAndTerm(int year, int term) {
+        List<Course> filteredCourses = CurriculumRecord.getCourseList().stream()
+                .filter(course -> course.getYear() == year && course.getTerm() == term).collect(Collectors.toList());
+        return (ArrayList<Course>) filteredCourses;
     }
 
-    public ArrayList<Course> FilterByCurriculum(boolean addtionalOnly){
-        return compiledRecord;
+    public ArrayList<Course> FilterByCurriculum(boolean isAdditional){
+        List<Course> filteredCourses = CurriculumRecord.getCourseList().stream()
+                .filter(e -> e.isAdditional() == isAdditional).collect(Collectors.toList());
+        return (ArrayList<Course>) filteredCourses;
     }
 
     public ArrayList<Course> SortByGrade(boolean descending){
-        return compiledRecord;
+        List<Course> filteredCourses;
+        if(descending){
+            filteredCourses = CurriculumRecord.getCourseList().stream().filter(e -> e.getGrade() > 0).sorted((o1, o2) -> {
+                //If result is negative, returns o1.
+                //If result is positive returns o2.
+                return (int) (o2.getGrade() - o1.getGrade());
+            }).collect(Collectors.toList());
+        }else {
+            filteredCourses = CurriculumRecord.getCourseList().stream().filter(e -> e.getGrade() > 0).sorted((o1, o2) -> {
+                return (int) (o1.getGrade() - o2.getGrade());
+            }).collect(Collectors.toList());
+        }
+        // Return the filtered list
+        return (ArrayList<Course>) filteredCourses;
     }
 
-    public ArrayList<Course> SortByGPA(boolean descending){
-        return compiledRecord;
+//WORK IN PROGRESS
+    public ArrayList<Course> SortByGPA(boolean descending){ return compiledRecord;
     }
+
+    public ArrayList<Course> SortByTitle(boolean descending){
+        List<Course> filteredCourses;
+        if(!descending){
+            filteredCourses = CurriculumRecord.getCourseList().stream().filter(e -> e.getTitle() != null)
+                    .sorted(Comparator.comparing(Course::getTitle))
+                    .collect(Collectors.toList());
+        }else{
+            filteredCourses = CurriculumRecord.getCourseList().stream().filter(e -> e.getTitle() != null)
+                    .sorted((o1, o2) -> o2.getTitle().compareTo(o1.getTitle()))
+                    .collect(Collectors.toList());
+        }
+
+        // Return the filtered list
+        return (ArrayList<Course>) filteredCourses;
+    }
+}
+
 
     public ArrayList<Course> SortByTitle(boolean descending){
         return compiledRecord;
